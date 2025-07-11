@@ -24,6 +24,12 @@
         "recipe": "oga-cpu",
         "suggested": true
     },
+    "Qwen3-0.6B-GGUF|o4-mini": {
+        "checkpoint": "unsloth/Qwen3-0.6B-GGUF:Q4_0|o4-mini",
+        "recipe": "minions",
+        "suggested": true,
+        "labels": ["reasoning"]
+    },
     "DeepSeek-R1-Distill-Llama-8B-CPU": {
         "checkpoint": "amd/DeepSeek-R1-Distill-Llama-8B-awq-asym-uint4-g128-lmhead-onnx-cpu",
         "recipe": "oga-cpu",
