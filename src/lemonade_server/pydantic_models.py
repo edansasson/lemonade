@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Any
+from typing import Optional, Union, List, Any, Dict
 
 from pydantic import BaseModel
 
@@ -63,6 +63,14 @@ class ChatCompletionRequest(BaseModel):
     max_tokens: int | None = None
     max_completion_tokens: int | None = None
     response_format: dict | None = None
+    protocol: str | None = None # used to choose which minions protocol
+    max_rounds: int | None = None # max rounds for minions
+    multi_turn_mode: bool | None = None # decide if Minion protocol will have multiple turns
+    max_history_turns: int | None = None # only for Minion protocol
+    use_responses_api: bool | None = None # OpenAIClient parameter
+    reasoning_effort: str | None = None # OpenAIClient parameter (low, medium, or high)
+    remote_max_tokens: int | None = None
+    remote_temperature: float | None = None
 
 
 class EmbeddingsRequest(BaseModel):
