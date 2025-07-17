@@ -24,8 +24,8 @@
         "recipe": "oga-cpu",
         "suggested": true
     },
-    "Qwen3-0.6B-GGUF|o4-mini": {
-        "checkpoint": "unsloth/Qwen3-0.6B-GGUF:Q4_0|o4-mini",
+    "Qwen3-0.6B-GGUF|gpt-4o": {
+        "checkpoint": "unsloth/Qwen3-0.6B-GGUF:Q4_0|gpt-4o",
         "recipe": "minions",
         "suggested": true,
         "labels": ["reasoning"]
