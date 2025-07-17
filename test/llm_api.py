@@ -213,11 +213,9 @@ class TestLlamaCpp(unittest.TestCase):
         """Test loading a model with llama.cpp"""
         state = LoadLlamaCpp().run(
             self.state,
-            executable=self.executable,
-            model_binary=self.model_path,
+            self.model_name + ":" + self.model_file,
             context_size=512,
             threads=1,
-            lib_dir=self.lib_dir,
         )
 
         self.assertIsNotNone(state.model)
@@ -226,9 +224,7 @@ class TestLlamaCpp(unittest.TestCase):
         """Test text generation with llama.cpp"""
         state = LoadLlamaCpp().run(
             self.state,
-            executable=self.executable,
-            model_binary=self.model_path,
-            lib_dir=self.lib_dir,
+            self.model_name + ":" + self.model_file,
         )
 
         prompt = "What is the capital of France?"
@@ -241,9 +237,7 @@ class TestLlamaCpp(unittest.TestCase):
         """Test benchmarking with llama.cpp"""
         state = LoadLlamaCpp().run(
             self.state,
-            executable=self.executable,
-            model_binary=self.model_path,
-            lib_dir=self.lib_dir,
+            self.model_name + ":" + self.model_file,
         )
 
         # Use longer output tokens to ensure we get valid performance metrics
@@ -467,7 +461,9 @@ class Testing(unittest.TestCase):
 
 
 class TestHfLogprobs(unittest.TestCase):
-    """Test the compute_logprobs functionality in Huggingface implementation"""
+    """
+    Test the compute_logprobs functionality in Huggingface implementation.
+    """
 
     def setUp(self) -> None:
         # Use a unique build name for each test to avoid conflicts
@@ -510,7 +506,9 @@ class TestHfLogprobs(unittest.TestCase):
         self.assertEqual(len(tokens), len(top_logprobs))
 
     def test_009_compute_logprobs_echo_parameter(self):
-        """Test compute_logprobs with echo parameter controlling prompt token inclusion"""
+        """
+        Test compute_logprobs with echo parameter controlling prompt token inclusion.
+        """
         checkpoint = "facebook/opt-125m"
 
         state = State(
@@ -571,6 +569,75 @@ class TestHfLogprobs(unittest.TestCase):
         self.assertEqual(len(zero_tokens), len(all_tokens))
 
 
+class TestSystemInfoAPI(unittest.TestCase):
+    """
+    Test the system information API functions.
+    """
+
+    def test_001_get_system_info_basic(self):
+        """
+        Test basic system info functionality.
+        """
+        from lemonade.api import get_system_info
+
+        system_info = get_system_info()
+
+        # Check it returns a dictionary
+        self.assertIsInstance(system_info, dict)
+
+        # Check required keys exist in default (non-verbose) mode
+        required_keys = ["OS Version", "Processor", "Physical Memory", "Devices"]
+        for key in required_keys:
+            self.assertIn(key, system_info)
+
+        # Basic validation
+        self.assertIsInstance(system_info["OS Version"], str)
+        self.assertIsInstance(system_info["Devices"], dict)
+
+    def test_001_get_system_info_verbose(self):
+        """
+        Test verbose system info functionality.
+        """
+        from lemonade.api import get_system_info
+
+        system_info = get_system_info(verbose=True)
+
+        # Check it returns a dictionary
+        self.assertIsInstance(system_info, dict)
+
+        # Check required keys exist in verbose mode
+        required_keys = ["OS Version", "Devices", "Python Packages"]
+        for key in required_keys:
+            self.assertIn(key, system_info)
+
+        # Basic validation
+        self.assertIsInstance(system_info["OS Version"], str)
+        self.assertIsInstance(system_info["Devices"], dict)
+        self.assertIsInstance(system_info["Python Packages"], list)
+        self.assertGreater(len(system_info["Python Packages"]), 0)
+
+    def test_002_get_device_info_basic(self):
+        """
+        Test basic device info functionality.
+        """
+        from lemonade.api import get_device_info
+
+        device_info = get_device_info()
+
+        # Check it returns a dictionary
+        self.assertIsInstance(device_info, dict)
+
+        # Check required device types exist
+        required_devices = ["cpu", "amd_igpu", "amd_dgpu", "npu"]
+        for device in required_devices:
+            self.assertIn(device, device_info)
+
+        # Check CPU has proper structure
+        cpu_info = device_info["cpu"]
+        self.assertIsInstance(cpu_info, dict)
+        self.assertIn("available", cpu_info)
+
+
 if __name__ == "__main__":
     # Get cache directory from environment or create a new one
     cache_dir = os.getenv("LEMONADE_CACHE_DIR")
@@ -602,6 +669,7 @@ if __name__ == "__main__":
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(Testing))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestHfLogprobs))
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestLlamaCpp))
+    suite.addTests(unittest.TestLoader().loadTestsFromTestCase(TestSystemInfoAPI))
 
     # Run the test suite
     runner = unittest.TextTestRunner()

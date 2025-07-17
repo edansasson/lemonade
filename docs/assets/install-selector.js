@@ -34,7 +34,7 @@ const lmnAllowlist = [
 
 const lmnAlwaysEnabledMethod = ['pypi', 'src'];
 
-window.lmnState = { os: 'win', type: 'server', method: 'pypi', fw: 'oga', dev: 'cpu' };
+window.lmnState = { os: 'win', type: 'server', method: 'gui', fw: 'oga', dev: 'hybrid' };
 
 function lmnIsAllowed(os, method, fw, dev, type) {
   // PyTorch not allowed for server-only
@@ -157,26 +157,44 @@ window.lmnRender = function() {
     }
   });
   // Set click handlers for all options
-  document.getElementById('os-win').onclick = function() { lmnSet('os','win'); };
-  document.getElementById('os-linux').onclick = function() { lmnSet('os','linux'); };
-  document.getElementById('type-server').onclick = function() { lmnSet('type','server'); };
-  document.getElementById('type-full').onclick = function() { lmnSet('type','full'); };
-  document.getElementById('method-gui').onclick = function() { lmnSet('method','gui'); };
-  document.getElementById('method-pypi').onclick = function() { lmnSet('method','pypi'); };
-  document.getElementById('method-src').onclick = function() { lmnSet('method','src'); };
-  document.getElementById('fw-oga').onclick = function() { lmnSet('fw','oga'); };
-  document.getElementById('fw-torch').onclick = function() { lmnSet('fw','torch'); };
-  document.getElementById('fw-llama').onclick = function() { lmnSet('fw','llama'); };
-  document.getElementById('dev-hybrid').onclick = function() { lmnSet('dev','hybrid'); };
-  document.getElementById('dev-cpu').onclick = function() { lmnSet('dev','cpu'); };
-  document.getElementById('dev-gpu').onclick = function() { lmnSet('dev','gpu'); };
+  var osWin = document.getElementById('os-win');
+  if (osWin) osWin.onclick = function() { lmnSet('os','win'); };
+  var osLinux = document.getElementById('os-linux');
+  if (osLinux) osLinux.onclick = function() { lmnSet('os','linux'); };
+  var typeServer = document.getElementById('type-server');
+  if (typeServer) typeServer.onclick = function() { lmnSet('type','server'); };
+  var typeFull = document.getElementById('type-full');
+  if (typeFull) typeFull.onclick = function() { lmnSet('type','full'); };
+  var methodGui = document.getElementById('method-gui');
+  if (methodGui) methodGui.onclick = function() { lmnSet('method','gui'); };
+  var methodPypi = document.getElementById('method-pypi');
+  if (methodPypi) methodPypi.onclick = function() { lmnSet('method','pypi'); };
+  var methodSrc = document.getElementById('method-src');
+  if (methodSrc) methodSrc.onclick = function() { lmnSet('method','src'); };
+  var fwOga = document.getElementById('fw-oga');
+  if (fwOga) fwOga.onclick = function() { lmnSet('fw','oga'); };
+  var fwTorch = document.getElementById('fw-torch');
+  if (fwTorch) fwTorch.onclick = function() { lmnSet('fw','torch'); };
+  var fwLlama = document.getElementById('fw-llama');
+  if (fwLlama) fwLlama.onclick = function() { lmnSet('fw','llama'); };
+  var devHybrid = document.getElementById('dev-hybrid');
+  if (devHybrid) devHybrid.onclick = function() { lmnSet('dev','hybrid'); };
+  var devCpu = document.getElementById('dev-cpu');
+  if (devCpu) devCpu.onclick = function() { lmnSet('dev','cpu'); };
+  var devGpu = document.getElementById('dev-gpu');
+  if (devGpu) devGpu.onclick = function() { lmnSet('dev','gpu'); };
 
   // Highlight active
-  document.getElementById('os-'+lmnState.os).classList.add('lmn-active');
-  document.getElementById('type-'+lmnState.type).classList.add('lmn-active');
-  document.getElementById('method-'+lmnState.method).classList.add('lmn-active');
-  document.getElementById('fw-'+lmnState.fw).classList.add('lmn-active');
-  document.getElementById('dev-'+lmnState.dev).classList.add('lmn-active');
+  var osElement = document.getElementById('os-'+lmnState.os);
+  if (osElement) osElement.classList.add('lmn-active');
+  var typeElement = document.getElementById('type-'+lmnState.type);
+  if (typeElement) typeElement.classList.add('lmn-active');
+  var methodElement = document.getElementById('method-'+lmnState.method);
+  if (methodElement) methodElement.classList.add('lmn-active');
+  var fwElement = document.getElementById('fw-'+lmnState.fw);
+  if (fwElement) fwElement.classList.add('lmn-active');
+  var devElement = document.getElementById('dev-'+lmnState.dev);
+  if (devElement) devElement.classList.add('lmn-active');
 
   // Gray out incompatible options (but keep them clickable)
   const opts = {
@@ -188,7 +206,8 @@ window.lmnRender = function() {
   };
   opts.os.forEach(os => {
     if (!lmnIsAllowed(os, lmnState.method, lmnState.fw, lmnState.dev, lmnState.type)) {
-      document.getElementById('os-'+os).classList.add('lmn-disabled');
+      var osEl = document.getElementById('os-'+os);
+      if (osEl) osEl.classList.add('lmn-disabled');
     }
   });
   opts.type.forEach(type => {
@@ -196,25 +215,84 @@ window.lmnRender = function() {
   });
   opts.method.forEach(method => {
     if (!lmnIsAllowed(lmnState.os, method, lmnState.fw, lmnState.dev, lmnState.type) && !lmnAlwaysEnabledMethod.includes(method)) {
-      document.getElementById('method-'+method).classList.add('lmn-disabled');
+      var methodEl = document.getElementById('method-'+method);
+      if (methodEl) methodEl.classList.add('lmn-disabled');
     }
   });
   opts.fw.forEach(fw => {
     if (!lmnIsAllowed(lmnState.os, lmnState.method, fw, lmnState.dev, lmnState.type)) {
-      document.getElementById('fw-'+fw).classList.add('lmn-disabled');
+      var fwEl = document.getElementById('fw-'+fw);
+      if (fwEl) fwEl.classList.add('lmn-disabled');
     }
     // PyTorch is always disabled for server-only
     if (lmnState.type === 'server' && fw === 'torch') {
-      document.getElementById('fw-torch').classList.add('lmn-disabled');
+      var fwTorchEl = document.getElementById('fw-torch');
+      if (fwTorchEl) fwTorchEl.classList.add('lmn-disabled');
     }
   });
   opts.dev.forEach(dev => {
     if (!lmnIsAllowed(lmnState.os, lmnState.method, lmnState.fw, dev, lmnState.type)) {
-      document.getElementById('dev-'+dev).classList.add('lmn-disabled');
+      var devEl = document.getElementById('dev-'+dev);
+      if (devEl) devEl.classList.add('lmn-disabled');
     }
   });
 
   // Command rendering
+  
+  // Generate badges
+  function generateBadges() {
+    var badges = '';
+    
+    // Python version badge
+    var pythonVersions = '';
+    if (lmnState.dev === 'hybrid' || lmnState.method === 'gui') {
+      pythonVersions = '3.10';
+    } else {
+      pythonVersions = '3.10%20%7C%203.12';
+    }
+    badges += '<img src="https://img.shields.io/badge/Python-' + pythonVersions + '-blue" alt="Python versions" style="margin-right: 0.5em;">';
+    
+    // OS version badge
+    var osVersions = '';
+    if (lmnState.os === 'linux') {
+      osVersions = 'Ubuntu%2024.04%20%7C%2025.04';
+    } else { // windows
+      osVersions = 'Windows%2011';
+    }
+    badges += '<img src="https://img.shields.io/badge/OS-' + osVersions + '-green" alt="OS versions">';
+    
+    return badges;
+  }
+  
+  // Generate explore commands
+  function generateExploreCommands() {
+    var commands = [];
+    
+    if (lmnState.type === 'full') {
+      commands.push('lemonade -h');
+    }
+    
+    if (lmnState.type === 'server') {
+      if (lmnState.method === 'gui') {
+        commands.push('lemonade-server -h');
+        commands.push('lemonade-server run Gemma-3-4b-it-GGUF');
+      } else {
+        commands.push('lemonade-server-dev -h');
+        commands.push('lemonade-server-dev run Gemma-3-4b-it-GGUF');
+      }
+    } else { // full
+      if (lmnState.method === 'gui') {
+        commands.push('lemonade-server -h');
+        commands.push('lemonade-server run Gemma-3-4b-it-GGUF');
+      } else {
+        commands.push('lemonade-server-dev -h');
+        commands.push('lemonade-server-dev run Gemma-3-4b-it-GGUF');
+      }
+    }
+    
+    return commands;
+  }
+  
   var cmd = '';
   var link = '';
   var condaBlock = '';
@@ -275,50 +353,110 @@ window.lmnRender = function() {
   } else if (cmd) {
     var gitCloneLines = (lmnState.method === 'src') ? 2 : 0; // git clone + cd
     var cmdLines = (condaBlock ? 2 : 0) + gitCloneLines + (cmd ? cmd.split('\n').length : 0);
-    label = cmdLines > 1 ? 'Run these Commands:' : 'Run this Command:';
+    label = cmdLines > 1 ? 'Run these Commands to Install:' : 'Run this Command to Install:';
   } else {
     label = '';
   }
   var cmdDiv = document.getElementById('lmn-command');
-  var labelDiv = document.getElementById('lmn-command-label');
-  labelDiv.textContent = label;
+  var downloadArea = document.getElementById('lmn-download-area');
+  var badgesDiv = document.getElementById('lmn-badges');
+  var exploreDiv = document.getElementById('lmn-explore-command');
+  var exploreSection = document.getElementById('lmn-explore-section');
+  
+  // Render badges
+  if (badgesDiv) {
+    badgesDiv.innerHTML = generateBadges();
+  }
+  
+  // Handle GUI downloads vs commands
   if (link && cmd !== '' && lmnState.method === 'gui') {
-    cmdDiv.innerHTML = '<div class="lmn-command"><a id="lmn-link" href="'+link+'" class="lmn-btn">'+cmd+'</a></div>';
-  } else if (cmd) {
-    var fullBlock = (condaBlock ? condaBlock : '') + '<pre><code class="language-bash" id="lmn-pre-block"></code></pre>';
-    cmdDiv.innerHTML = '<div class="lmn-command">'+fullBlock+'</div>';
-    // Add hybrid note if Hybrid is selected with PyPI or From Source
-    if ((lmnState.method === 'pypi' || lmnState.method === 'src') && lmnState.dev === 'hybrid') {
-      cmdDiv.innerHTML += '<div style="margin-top:0.7em; color:#222; font-size:1.04rem; font-style:italic;">Hybrid requires an AMD Ryzen AI 300-series PC with Windows 11.</div>';
-    }
-    // Add llama.cpp benchmarking note if CPU is selected with PyPI or From Source and Full SDK
-    if ((lmnState.method === 'pypi' || lmnState.method === 'src') && lmnState.fw === 'llama' && lmnState.dev === 'cpu' && lmnState.type === 'full') {
-      cmdDiv.innerHTML += '<div style="margin-top:0.7em; color:#222; font-size:1.04rem; font-style:italic;">For benchmarking, see the llamacpp instructions in <a href="https://github.com/lemonade-sdk/lemonade/blob/main/docs/dev_cli/llamacpp.md" target="_blank" style="color:#e6b800; text-decoration:underline;">llamacpp.md</a></div>';
-    }
-    // Render command lines with copy buttons
-    setTimeout(function() {
-      var pre = document.getElementById('lmn-pre-block');
-      if (pre) {
-        var lines = [];
-        if (condaBlock) {
-          lines.push('conda create -n lemon python=3.10');
-          lines.push('conda activate lemon');
-        }
-        cmd.split('\n').forEach(function(line) { lines.push(line); });
-        pre.innerHTML = lines.map(function(line, idx) {
-          var safeLine = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          return '<div class="lmn-command-line"><span>'+safeLine+'</span><button class="lmn-copy-btn" title="Copy" onclick="lmnCopyLine(event, '+idx+')">📋</button></div>';
-        }).join('');
+    // Show download area, hide command area
+    if (downloadArea) {
+      downloadArea.style.display = 'block';
+      var linkElement = document.getElementById('lmn-link');
+      if (linkElement) {
+        linkElement.href = link;
+        linkElement.textContent = cmd;
       }
-    }, 0);
+    }
+    if (cmdDiv) {
+      cmdDiv.innerHTML = '';
+    }
+  } else if (cmd) {
+    // Show command area, hide download area
+    if (downloadArea) {
+      downloadArea.style.display = 'none';
+    }
+    if (cmdDiv) {
+      var fullBlock = (condaBlock ? condaBlock : '') + '<pre><code class="language-bash" id="lmn-pre-block"></code></pre>';
+      cmdDiv.innerHTML = '<div class="lmn-command">'+fullBlock+'</div>';
+      
+      // Add hybrid note if Hybrid is selected with PyPI or From Source
+      if ((lmnState.method === 'pypi' || lmnState.method === 'src') && lmnState.dev === 'hybrid') {
+        cmdDiv.innerHTML += '<div style="margin-top:0.7em; color:#666; font-size:1.04rem; font-style:italic;">Hybrid requires an AMD Ryzen AI 300-series PC with Windows 11.</div>';
+      }
+      
+      // Render command lines with copy buttons
+      setTimeout(function() {
+        var pre = document.getElementById('lmn-pre-block');
+        if (pre) {
+          var lines = [];
+          if (condaBlock) {
+            lines.push('conda create -n lemon python=3.10');
+            lines.push('conda activate lemon');
+          }
+          cmd.split('\n').forEach(function(line) { lines.push(line); });
+          pre.innerHTML = lines.map(function(line, idx) {
+            var safeLine = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return '<div class="lmn-command-line"><span>'+safeLine+'</span><button class="lmn-copy-btn" title="Copy" onclick="lmnCopyLine(event, '+idx+')">📋</button></div>';
+          }).join('');
+        }
+      }, 0);
+    }
   } else {
-    cmdDiv.innerHTML = '';
+    if (cmdDiv) cmdDiv.innerHTML = '';
+    if (downloadArea) downloadArea.style.display = 'none';
+  }
+  
+  // Render explore commands
+  if (exploreDiv && exploreSection) {
+    var exploreCommands = generateExploreCommands();
+    if (exploreCommands.length > 0) {
+      exploreSection.style.display = 'block';
+      exploreDiv.innerHTML = '<pre><code class="language-bash" id="lmn-explore-pre-block"></code></pre>';
+      
+      setTimeout(function() {
+        var explorePre = document.getElementById('lmn-explore-pre-block');
+        if (explorePre) {
+          explorePre.innerHTML = exploreCommands.map(function(line, idx) {
+            var safeLine = line.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return '<div class="lmn-command-line"><span>'+safeLine+'</span><button class="lmn-copy-btn" title="Copy" onclick="lmnCopyExploreLine(event, '+idx+')">📋</button></div>';
+          }).join('');
+        }
+      }, 0);
+    } else {
+      exploreSection.style.display = 'none';
+    }
   }
 };
 
 window.lmnCopyLine = function(e, idx) {
   e.stopPropagation();
   var pre = document.getElementById('lmn-pre-block');
+  if (!pre) return;
+  var lines = Array.from(pre.querySelectorAll('.lmn-command-line span')).map(function(span) { return span.textContent; });
+  if (lines[idx] !== undefined) {
+    navigator.clipboard.writeText(lines[idx]);
+    var btn = e.currentTarget;
+    var old = btn.textContent;
+    btn.textContent = '✔';
+    setTimeout(function() { btn.textContent = old; }, 900);
+  }
+};
+
+window.lmnCopyExploreLine = function(e, idx) {
+  e.stopPropagation();
+  var pre = document.getElementById('lmn-explore-pre-block');
   if (!pre) return;
   var lines = Array.from(pre.querySelectorAll('.lmn-command-line span')).map(function(span) { return span.textContent; });
   if (lines[idx] !== undefined) {
@@ -367,11 +505,23 @@ window.lmnInit = function() {
           <td id="dev-gpu" onclick="lmnSet('dev','gpu')">GPU</td>
         </tr>
       </table>
-      <div class="lmn-command-area" style="margin-top:1em;">
-        <b id="lmn-command-label">Run this Command:</b>
-        <div id="lmn-command" class="lmn-command">
-          <a id="lmn-link" href="https://github.com/lemonade-sdk/lemonade/releases/latest/download/lemonade_server_installer.exe">Download Lemonade Server Installer (.exe)</a>
+      <div class="lmn-content-section">
+        <div class="lmn-section-header">
+          Installation Instructions
         </div>
+        <div id="lmn-badges" class="lmn-badges"></div>
+        <div id="lmn-install-content">
+          <div id="lmn-download-area" class="lmn-download-section" style="display: none;">
+            <a id="lmn-link" href="https://github.com/lemonade-sdk/lemonade/releases/latest/download/lemonade_server_installer.exe">Download Lemonade Server Installer (.exe)</a>
+          </div>
+          <div id="lmn-command" class="lmn-command"></div>
+        </div>
+      </div>
+      <div id="lmn-explore-section" class="lmn-content-section" style="margin-top: 1.5em;">
+        <div class="lmn-section-header lmn-explore-header">
+          Quick Start
+        </div>
+        <div id="lmn-explore-command" class="lmn-command"></div>
       </div>
     `;
   }
