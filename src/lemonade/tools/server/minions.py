@@ -9,10 +9,17 @@ from lemonade_server.pydantic_models import ChatCompletionRequest
 import lemonade.tools.server.llamacpp as llamacpp
 
 # Import Minions necessary code
-from minions.minion import Minion
-from minions.minions import Minions
-from minions.clients.openai import OpenAIClient
-from minions.clients.lemonade import LemonadeClient
+try:
+    from minions.minion import Minion
+    from minions.minions import Minions
+    from minions.clients.openai import OpenAIClient
+    from minions.clients.lemonade import LemonadeClient
+except ImportError:
+    print("Minions library not found. Please install it first.")
+    print("Visit the Minions repository: https://github.com/HazyResearch/minions")
+    raise
+
+
 from pydantic import BaseModel
 import re
 
