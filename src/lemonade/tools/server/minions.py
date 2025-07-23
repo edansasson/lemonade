@@ -15,9 +15,9 @@ try:
     from minions.clients.openai import OpenAIClient
     from minions.clients.lemonade import LemonadeClient
 except ImportError:
-    print("Minions library not found. Please install it first.")
-    print("Visit the Minions repository: https://github.com/HazyResearch/minions")
-    raise
+    logging.debug("Minions library not found. Please install it first.")
+    logging.debug("Visit the Minions repository: https://github.com/HazyResearch/minions")
+    
 
 
 from pydantic import BaseModel
