@@ -19,9 +19,9 @@ try:
     from minions.minion_code import DevMinion
     from minions.utils.workspace import WorkspaceManager
 except ImportError:
-    logging.debug("Minions library not found. Please install it first.")
-    logging.debug("Visit the Minions repository: https://github.com/HazyResearch/minions")
-    
+    print("Minions library not found. Please install it first.")
+    print("Visit the Minions repository: https://github.com/HazyResearch/minions")
+    raise
 
 
 from pydantic import BaseModel
@@ -81,57 +81,72 @@ async def run_devminion_in_background(chat_completion_request, task, context,
     except Exception as e:
         return {"final_answer": f"Error: {str(e)}"}
 
-def format_devminion_for_continue(devminion_result) -> str:
+def format_devminion_for_continue(devminion_result):
     """
-    Converts DevMinion output dict to a markdown-formatted string compatible with Continue.dev.
+    Convert DevMinion results (a dict) to a markdown string compatible
+    with Continue.dev, so files are apply-able in the workspace.
     """
-    # Header with project overview or fallback title
-    project_name = devminion_result.get('runbook', {}).get('project_overview', 'DevMinion Generated Project')
-    output = f"# {project_name}\n\n"
+    # Top-level project overview
+    project_overview = devminion_result.get("runbook", {}).get("project_overview", "DevMinion Generated Project")
+    formatted = f"# {project_overview}\n\n"
 
-    # Extract all generated files and format as markdown code blocks
-    workspace_summary = devminion_result.get('workspace_summary', {})
-    files = workspace_summary.get('files', {})
-
+    # ========== Files ==========
+    workspace_summary = devminion_result.get("workspace_summary", {})
+    files = workspace_summary.get("files", {})
     if files:
-        output += "## Generated Files\n\n"
+        formatted += "## Generated Files\n\n"
         for filepath, content in files.items():
-            # Determine language for syntax highlighting from extension
             language = get_language_from_extension(filepath)
-            # Format filename with language in code block header (supports Continue.dev)
-            output += f"``````\n\n"
+            formatted += f"```{language} {filepath}\n"
+            formatted += f"{content.strip() if content else '// Empty file'}\n"
+            formatted += f"```\n\n"
 
-    # Optionally add final assessment section
-    assessment = devminion_result.get('final_assessment')
+    # ========== Documentation (Optional) ==========
+    documentation = workspace_summary.get("documentation") or devminion_result.get("documentation")
+    if documentation:
+        formatted += f"## Documentation\n\n{documentation.strip()}\n\n"
+
+    # ========== Final Assessment ==========
+    assessment = devminion_result.get("final_assessment")
     if assessment:
-        output += "## Final Assessment\n\n"
-        # If assessment is dict, parse keys nicely
+        formatted += "## Final Assessment\n\n"
         if isinstance(assessment, dict):
-            status = assessment.get('project_status')
-            if status:
-                output += f"**Status:** {status}\n\n"
-            completion = assessment.get('completion_percentage')
-            if completion:
-                output += f"**Completion:** {completion}\n\n"
-            strengths = assessment.get('final_assessment', {}).get('strengths')
-            if strengths:
-                output += "**Strengths:**\n"
-                for strength in strengths:
-                    output += f"- {strength}\n"
-                output += "\n"
-            # Add any other fields you want here
+            if assessment.get("project_status"):
+                formatted += f"**Status:** {assessment['project_status']}\n\n"
+            if assessment.get("completion_percentage"):
+                formatted += f"**Completion:** {assessment['completion_percentage']}\n\n"
+            final_assessment = assessment.get("final_assessment", {})
+            if final_assessment.get("strengths"):
+                formatted += "**Strengths:**\n"
+                for s in final_assessment["strengths"]:
+                    formatted += f"- {s}\n"
+            if final_assessment.get("weaknesses"):
+                formatted += "\n**Weaknesses:**\n"
+                for w in final_assessment["weaknesses"]:
+                    formatted += f"- {w}\n"
+            formatted += "\n"
         else:
-            output += f"{assessment}\n\n"
+            formatted += str(assessment) + "\n\n"
 
-    # Add setup instructions if present
-    session_log = devminion_result.get('session_log', {})
-    runbook = session_log.get('runbook', {})
-    final_testing = runbook.get('final_testing') if runbook else None
-    if final_testing:
-        output += "## Setup Instructions\n\n"
-        output += f"``````\n\n"
+    # ========== Setup Instructions ==========
+    session_log = devminion_result.get("session_log", {})
+    runbook = session_log.get("runbook", {}) if session_log else {}
+    setup_instructions = (
+        runbook.get("final_testing")
+        or workspace_summary.get("setup_instructions")
+        or devminion_result.get("setup_instructions")
+    )
+    if setup_instructions:
+        formatted += "## Setup Instructions\n\n"
+        if isinstance(setup_instructions, list):
+            formatted += '\n'.join(f"- {line.strip()}" for line in setup_instructions) + "\n\n"
+        else:
+            formatted += str(setup_instructions).strip() + "\n\n"
 
-    return output
+    print(formatted)
+
+    return formatted
+
 
 def get_language_from_extension(filepath: str) -> str:
     """Return the code language identifier based on file extension for syntax highlighting."""
