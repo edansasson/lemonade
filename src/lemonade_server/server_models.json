@@ -30,6 +30,12 @@
         "suggested": true,
         "labels": ["reasoning"]
     },
+    "Qwen3-8B-GGUF|gpt-4o": {
+        "checkpoint": "unsloth/Qwen3-8B-GGUF:Q4_1|gpt-4o",
+        "recipe": "minions",
+        "suggested": true,
+        "labels": ["reasoning"]
+    },
     "DeepSeek-R1-Distill-Llama-8B-CPU": {
         "checkpoint": "amd/DeepSeek-R1-Distill-Llama-8B-awq-asym-uint4-g128-lmhead-onnx-cpu",
         "recipe": "oga-cpu",

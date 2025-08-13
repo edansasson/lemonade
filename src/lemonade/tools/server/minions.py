@@ -54,7 +54,7 @@ def chat_completion(
     logging.debug(f"Using a combined model: {local_model} | {remote_model}")
 
     # extract all extra feature parameters
-    protocol = chat_completion_request.protocol if chat_completion_request.protocol else "minions"  # default to minions
+    protocol = chat_completion_request.protocol if chat_completion_request.protocol else "minion"  # default to minions
     max_rounds = chat_completion_request.max_rounds if chat_completion_request.max_rounds else 2 if protocol == "minion" else 5  # default to 2 if minions, 5 if minions
     multi_turn_mode = chat_completion_request.multi_turn_mode if chat_completion_request.multi_turn_mode else False # default to False
     max_history_turns = chat_completion_request.max_history_turns if chat_completion_request.max_history_turns else 0 # default to 0
