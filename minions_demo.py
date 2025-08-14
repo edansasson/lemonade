@@ -51,7 +51,7 @@ try:
     )
     
     print("Basic Minion Response:")
-    print(completion2.choices[0].message.content)
+    print(completion2)
 
 
     # Print the response
