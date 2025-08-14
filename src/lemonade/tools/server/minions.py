@@ -186,7 +186,15 @@ def chat_completion(
                 )
             
             logging.debug(f"Basic Minion protocol with LemonadeClient response: {response}")
-            
+            remote_usage = response.get("remote_usage", {})
+            if remote_usage:
+                prompt_tokens = remote_usage.get("prompt_tokens", 0)
+                completion_tokens = remote_usage.get("completion_tokens", 0)
+                total_tokens = remote_usage.get("total_tokens", 0)
+            else:
+                prompt_tokens = 0
+                completion_tokens = 0
+                total_tokens = 0
             # Convert response back to OpenAI format
             openai_response = {
                 "choices": [{
@@ -198,9 +206,9 @@ def chat_completion(
                 }],
                 "model": f"{local_model}|{remote_model}",
                 "usage": {
-                    "prompt_tokens": 0,  # Would need to calculate actual usage
-                    "completion_tokens": 0,
-                    "total_tokens": 0
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": total_tokens
                 }
             }
             
