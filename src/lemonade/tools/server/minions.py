@@ -11,6 +11,7 @@ import lemonade.tools.server.llamacpp as llamacpp
 # Import Minions necessary code
 try:
     from minions.minion import Minion
+    from minions.minion_tunable import CostAwareMinion
     from minions.minions import Minions
     from minions.clients.openai import OpenAIClient
     from minions.clients.lemonade import LemonadeClient
@@ -54,8 +55,8 @@ def chat_completion(
     logging.debug(f"Using a combined model: {local_model} | {remote_model}")
 
     # extract all extra feature parameters
-    protocol = chat_completion_request.protocol if chat_completion_request.protocol else "minion"  # default to minions
-    max_rounds = chat_completion_request.max_rounds if chat_completion_request.max_rounds else 2 if protocol == "minion" else 5  # default to 2 if minions, 5 if minions
+    protocol = chat_completion_request.protocol if chat_completion_request.protocol else "minions"  # default to minions
+    max_rounds = chat_completion_request.max_rounds if chat_completion_request.max_rounds else 2 if protocol == "minion" else 5  # default to 2 if minion, 5 if minions
     multi_turn_mode = chat_completion_request.multi_turn_mode if chat_completion_request.multi_turn_mode else False # default to False
     max_history_turns = chat_completion_request.max_history_turns if chat_completion_request.max_history_turns else 0 # default to 0
     use_responses_api = chat_completion_request.use_responses_api if chat_completion_request.use_responses_api else False # default to False
@@ -175,7 +176,8 @@ def chat_completion(
                 )
 
                 # Initialize the basic Minion protocol with LemonadeClient
-                minion = Minion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns)
+                #minion = Minion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns)
+                minion = CostAwareMinion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns, cost_sensitivity="high")
 
                 # Use the basic Minion protocol with LemonadeClient
                 response = minion(
@@ -187,6 +189,7 @@ def chat_completion(
             
             logging.debug(f"Basic Minion protocol with LemonadeClient response: {response}")
             remote_usage = response.get("remote_usage", {})
+            logging.debug(f"REMOTE USAGE: {remote_usage}")
             if remote_usage:
                 prompt_tokens = remote_usage.get("prompt_tokens", 0)
                 completion_tokens = remote_usage.get("completion_tokens", 0)

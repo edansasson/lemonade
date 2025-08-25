@@ -30,7 +30,7 @@ try:
     )
     
     print("Minions Response:")
-    print(completion.choices[0].message.content)
+    print(completion)
 
     # Example 2: Basic Minion Protocol
     print("\n=== Example 2: Basic Minion ===")
