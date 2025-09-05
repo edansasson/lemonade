@@ -55,7 +55,7 @@ def chat_completion(
     logging.debug(f"Using a combined model: {local_model} | {remote_model}")
 
     # extract all extra feature parameters
-    protocol = chat_completion_request.protocol if chat_completion_request.protocol else "minions"  # default to minions
+    protocol = chat_completion_request.protocol if chat_completion_request.protocol else "minion"  # default to minions
     max_rounds = chat_completion_request.max_rounds if chat_completion_request.max_rounds else 2 if protocol == "minion" else 5  # default to 2 if minion, 5 if minions
     multi_turn_mode = chat_completion_request.multi_turn_mode if chat_completion_request.multi_turn_mode else False # default to False
     max_history_turns = chat_completion_request.max_history_turns if chat_completion_request.max_history_turns else 0 # default to 0
@@ -89,7 +89,7 @@ def chat_completion(
         temperature=remote_temperature,
         max_tokens=remote_max_tokens
     )
-    
+    chat_completion_request.stream=False
     # Check if streaming is requested
     if chat_completion_request.stream:
         raise NotImplementedError(
@@ -111,6 +111,9 @@ def chat_completion(
                     task_match = re.search(r'##TASK##\s*(.*?)(?=##CONTEXT##|$)', content, re.IGNORECASE | re.DOTALL)
                     context_match = re.search(r'##CONTEXT##\s*(.*?)(?=##TASK##|$)', content, re.IGNORECASE | re.DOTALL)
                     
+                    task_from_content = None
+                    context_from_content = None
+
                     if task_match:
                         task_from_content = task_match.group(1).strip()
                     if context_match:
