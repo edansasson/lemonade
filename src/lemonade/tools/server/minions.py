@@ -47,7 +47,7 @@ def get_model_name_from_llamacpp_server(port: int) -> str:
 
 def chat_completion(
     chat_completion_request: ChatCompletionRequest, 
-    telemetry: llamacpp.LlamaTelemetry
+    port: int
 ):
     # Extract the local model name from the checkpoint
     local_model, remote_model = chat_completion_request.model.split("|")
@@ -69,16 +69,7 @@ def chat_completion(
     # Configure remote client
     if not os.getenv("OPENAI_API_KEY"):
         raise ValueError("OPENAI_API_KEY is not set")
-
-    # USE TELEMETRY PORT DIRECTLY
-    if not hasattr(telemetry, 'port') or telemetry.port is None:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Telemetry port not available. Make sure Lemonade Server is running with a loaded model."
-        )
-    
-    port = telemetry.port
-    
+        
     # GET THE ACTUAL MODEL NAME FROM THE SERVER
     actual_model_name = get_model_name_from_llamacpp_server(port)
     if actual_model_name is None:
@@ -110,7 +101,7 @@ def chat_completion(
             # Convert messages to context format expected by Minion
             context = ""
             task = ""
-
+            count = 1
             # Extract the last user message as the task
             for message in chat_completion_request.messages:
                 if message["role"] == "user":
@@ -157,7 +148,8 @@ def chat_completion(
 
                 # Initialize the basic Minion protocol with LemonadeClient
                 minions = Minions(lemonade_client, remote_client)
-
+                logging.debug(f"Entering Minions {count}")
+                count += 1
                 # Use the basic Minion protocol with LemonadeClient
                 response = minions(
                     task=task,
@@ -215,13 +207,13 @@ def chat_completion(
                 }
             }
             
-            # Show telemetry after completion
-            telemetry.show_telemetry()
-            
             return openai_response
             
         except Exception as e:
+            import traceback
+            tb = traceback.format_exc()  # Capture the full traceback as a string
+
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Basic Minion protocol with LemonadeClient error: {str(e)}",
+                detail=f"Basic Minion protocol with LemonadeClient error: [{type(e).__name__}] {repr(e)}\nTraceback:\n{tb}",
             )

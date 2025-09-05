@@ -662,7 +662,7 @@ class Server:
             return self.wrapped_server.chat_completion(chat_completion_request)
         elif self.llm_loaded.recipe == "minions":
             return minions.chat_completion(
-                chat_completion_request, self.llama_telemetry
+                chat_completion_request, self.wrapped_server.port # send in the llamacpp port number
             )
 
         # Convert chat messages to text using the model's chat template
