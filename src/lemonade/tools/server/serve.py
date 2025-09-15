@@ -1469,9 +1469,15 @@ class Server:
                 config_to_use = LoadConfig(**supported_models[config.model_name])
 
             # Caching mechanism: if the checkpoint is already loaded there is nothing else to do
+            # for minions distinguish between minions model and only local model: unsloth/Qwen3-8B-GGUF:Q4_1|gpt-4o vs unsloth/Qwen3-8B-GGUF:Q4_1 if loaded right after
             if (
                 self.llm_loaded
                 and config_to_use.checkpoint.split("|")[0] == self.llm_loaded.checkpoint
+                # do minions check
+                # if current model is minions but new one isn't, exit
+                and not ("|" in self.llm_loaded.model_name and "|" not in config_to_use.checkpoint)
+                # check if current model is not minions but new one is
+                and not ("|" not in self.llm_loaded.model_name and "|" in config_to_use.checkpoint)
             ):
                 if (
                     self.llm_loaded.recipe == "llamacpp"
