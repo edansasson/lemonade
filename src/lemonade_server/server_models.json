@@ -36,6 +36,24 @@
         "suggested": true,
         "labels": ["coding"]
     },
+    "Qwen3-4B-Instruct-2507-GGUF": {
+        "checkpoint": "unsloth/Qwen3-4B-Instruct-2507-GGUF:Q4_0",
+        "recipe": "llamacpp",
+        "suggested": true,
+        "labels": ["coding"]
+    },
+    "Qwen2.5-Coder-7B-Instruct-GGUF|gpt-4o": {
+        "checkpoint": "unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF:Q4_K_M|gpt-4o",
+        "recipe": "minions",
+        "suggested": true,
+        "labels": ["coding"]
+    },
+    "Qwen2.5-Coder-7B-Instruct-GGUF": {
+        "checkpoint": "unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF:Q4_K_M",
+        "recipe": "llamacpp",
+        "suggested": true,
+        "labels": ["coding"]
+    },
     "Qwen3-8B-GGUF|gpt-4o": {
         "checkpoint": "unsloth/Qwen3-8B-GGUF:Q4_1|gpt-4o",
         "recipe": "minions",

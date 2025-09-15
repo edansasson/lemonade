@@ -15,7 +15,9 @@ try:
     from minions.minions import Minions
     from minions.clients.openai import OpenAIClient
     from minions.clients.lemonade import LemonadeClient
-except ImportError:
+except ImportError as e:
+    print(str(e))
+    raise
     logging.debug("Minions library not found. Please install it first.")
     logging.debug("Visit the Minions repository: https://github.com/HazyResearch/minions")
     
@@ -172,7 +174,7 @@ def chat_completion(
 
                 # Initialize the basic Minion protocol with LemonadeClient
                 #minion = Minion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns)
-                minion = CostAwareMinion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns, cost_sensitivity="high")
+                minion = CostAwareMinion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns, cost_sensitivity="pygame")
 
                 # Use the basic Minion protocol with LemonadeClient
                 response = minion(
