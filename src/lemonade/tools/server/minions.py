@@ -12,8 +12,10 @@ import lemonade.tools.server.llamacpp as llamacpp
 try:
     from minions.minion import Minion
     from minions.minion_tunable import CostAwareMinion
+    from minions.minion_tunable_swe import MiniSweMinion
     from minions.minions import Minions
     from minions.clients.openai import OpenAIClient
+    from minions.clients.anthropic import AnthropicClient
     from minions.clients.lemonade import LemonadeClient
 except ImportError:
     logging.debug("Minions library not found. Please install it first.")
@@ -78,17 +80,28 @@ def chat_completion(
     
     # Create LemonadeClient with the actual model name from the server
     base_url = f"http://localhost:{port}/v1"
-    
-    # Configure remote client using OpenAI
-    remote_client = OpenAIClient(
-        model_name=remote_model,
-        api_key=os.getenv("OPENAI_API_KEY"),
-        use_responses_api=use_responses_api,
-        reasoning_effort=reasoning_effort,
-        tools=chat_completion_request.tools,
-        temperature=remote_temperature,
-        max_tokens=remote_max_tokens
-    )
+    if "gpt" in remote_model:
+        # Configure remote client using OpenAI
+        remote_client = OpenAIClient(
+            model_name=remote_model,
+            api_key=os.getenv("OPENAI_API_KEY"),
+            use_responses_api=use_responses_api,
+            reasoning_effort=reasoning_effort,
+            tools=chat_completion_request.tools,
+            temperature=remote_temperature,
+            max_tokens=remote_max_tokens
+        )
+    else:
+        # Configure remote client using custom model
+        remote_client = AnthropicClient(
+            model_name=remote_model,
+            api_key=os.getenv("ANTHROPIC_API_KEY"),
+            use_responses_api=use_responses_api,
+            reasoning_effort=reasoning_effort,
+            tools=chat_completion_request.tools,
+            temperature=remote_temperature,
+            max_tokens=remote_max_tokens
+        )
     chat_completion_request.stream=False
     # Check if streaming is requested
     if chat_completion_request.stream:
@@ -98,39 +111,82 @@ def chat_completion(
     else:
         # Non-streaming response using basic Minion protocol
         try:
+            # WILL ONLY WORK FOR CODING
+            messages = chat_completion_request.messages
             # Convert messages to context format expected by Minion
-            context = ""
-            task = ""
-            count = 1
-            # Extract the last user message as the task
-            for message in chat_completion_request.messages:
-                if message["role"] == "user":
-                    content = message["content"]
+            #NON-CODING SECTION
+            """try:
+                # Convert messages to context format expected by Minion
+                context = ""
+                task = ""
+                count = 1
+                # Extract the last user message as the task
+                logging.debug(f"All messages: {chat_completion_request.messages}\n")
+                for message in chat_completion_request.messages:
+                    logging.debug(f"Processing message role: {message['role']}, content type: {type(message['content'])}")
+                    if message["role"] == "user":
+                        content = message["content"]
+                        
+                        # Handle different content formats (string vs list of content blocks)
+                        if isinstance(content, list):
+                            # Anthropic-style content blocks - extract text from all text blocks
+                            content_text = ""
+                            for block in content:
+                                if isinstance(block, dict) and block.get("type") == "text":
+                                    content_text += block.get("text", "")
+                            content = content_text
+                        elif not isinstance(content, str):
+                            # Convert other types to string
+                            content = str(content)
 
-                    # Try to extract task and context using structured delimiters
-                    task_match = re.search(r'##TASK##\s*(.*?)(?=##CONTEXT##|$)', content, re.IGNORECASE | re.DOTALL)
-                    context_match = re.search(r'##CONTEXT##\s*(.*?)(?=##TASK##|$)', content, re.IGNORECASE | re.DOTALL)
-                    
-                    task_from_content = None
-                    context_from_content = None
+                        # Try to extract task and context using structured delimiters
+                        task_match = re.search(r'##TASK##\s*(.*?)(?=##CONTEXT##|$)', content, re.IGNORECASE | re.DOTALL)
+                        context_match = re.search(r'##CONTEXT##\s*(.*?)(?=##TASK##|$)', content, re.IGNORECASE | re.DOTALL)
+                        
+                        task_from_content = None
+                        context_from_content = None
 
-                    if task_match:
-                        task_from_content = task_match.group(1).strip()
-                    if context_match:
-                        context_from_content = context_match.group(1).strip()
-                    
-                    # Use parsed values or fall back to entire content
-                    if task_from_content:
-                        task = task_from_content
-                    if context_from_content:
-                        context = context_from_content
-                    elif not task_from_content:
-                        task = content  # Use entire content as task if no special format
-                elif message["role"] == "system":
-                    context += message["content"] + "\n"
-                elif message["role"] == "assistant":
-                    context += f"Assistant: {message['content']}\n"
-            
+                        if task_match:
+                            task_from_content = task_match.group(1).strip()
+                        if context_match:
+                            context_from_content = context_match.group(1).strip()
+                        
+                        # Use parsed values or fall back to entire content
+                        if task_from_content:
+                            task += task_from_content
+                        if context_from_content:
+                            context += context_from_content
+                        elif not task_from_content:
+                            task += content  # Use entire content as task if no special format
+                    elif message["role"] == "system":
+                        system_content = message["content"]
+                        # Handle different content formats for system messages
+                        if isinstance(system_content, list):
+                            system_text = ""
+                            for block in system_content:
+                                if isinstance(block, dict) and block.get("type") == "text":
+                                    system_text += block.get("text", "")
+                            system_content = system_text
+                        elif not isinstance(system_content, str):
+                            system_content = str(system_content)
+                        context += system_content + "\n"
+                    elif message["role"] == "assistant":
+                        assistant_content = message["content"]
+                        # Handle different content formats for assistant messages
+                        if isinstance(assistant_content, list):
+                            assistant_text = ""
+                            for block in assistant_content:
+                                if isinstance(block, dict) and block.get("type") == "text":
+                                    assistant_text += block.get("text", "")
+                            assistant_content = assistant_text
+                        elif not isinstance(assistant_content, str):
+                            assistant_content = str(assistant_content)
+                        context += f"Assistant: {assistant_content}\n"
+                        """
+
+
+            #logging.debug(f"task: {task}\n")
+            #logging.debug(f"context: {context}\n")
 
             if protocol.lower() == "minions":
                 # Define the structured output schema for local client
@@ -151,8 +207,6 @@ def chat_completion(
 
                 # Initialize the basic Minion protocol with LemonadeClient
                 minions = Minions(lemonade_client, remote_client)
-                logging.debug(f"Entering Minions {count}")
-                count += 1
                 # Use the basic Minion protocol with LemonadeClient
                 response = minions(
                     task=task,
@@ -172,14 +226,12 @@ def chat_completion(
 
                 # Initialize the basic Minion protocol with LemonadeClient
                 #minion = Minion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns)
-                minion = CostAwareMinion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns, cost_sensitivity="high")
+                #minion = CostAwareMinion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns, cost_sensitivity="mini_swe_agent")
+                minion = MiniSweMinion(lemonade_client, remote_client, is_multi_turn=multi_turn_mode, max_history_turns=max_history_turns)
 
                 # Use the basic Minion protocol with LemonadeClient
                 response = minion(
-                    task=task,
-                    doc_metadata="Chat Context",
-                    context=[context] if context else ["""Use the task as context."""],
-                    max_rounds=max_rounds
+                    messages
                 )
             
             logging.debug(f"Basic Minion protocol with LemonadeClient response: {response}")
