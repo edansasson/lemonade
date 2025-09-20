@@ -17,7 +17,9 @@ try:
     from minions.clients.openai import OpenAIClient
     from minions.clients.anthropic import AnthropicClient
     from minions.clients.lemonade import LemonadeClient
-except ImportError:
+except ImportError as e:
+    print(str(e))
+    raise
     logging.debug("Minions library not found. Please install it first.")
     logging.debug("Visit the Minions repository: https://github.com/HazyResearch/minions")
     
